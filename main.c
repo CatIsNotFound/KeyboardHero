@@ -1,7 +1,7 @@
 #include "Funcs/Game.h"
 int main(void) {
-    init_game();
+    init();
     system("pause");
-    destory_game();
+    destroy();
     return 0;
 }

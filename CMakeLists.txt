@@ -12,4 +12,7 @@ add_executable(KeyboardHero main.c
         Funcs/Control.h
         Funcs/Datas.c
         Funcs/Datas.h
+        Funcs/UI.c
+        Funcs/UI.h
 )
+

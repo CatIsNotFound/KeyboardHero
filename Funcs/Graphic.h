@@ -4,27 +4,32 @@
 #include <string.h>
 
 /* Misc */
-// æ–¹å‘
+// ·½Ïò
 enum Direction {Up = 'A', Down, Right, Left};
-// å®šä¹‰åæ ‡ ä½ç½®
+// ¶¨Òå×ø±ê Î»ÖÃ
 struct Position {
     int line, col;
 };
-// å®šä¹‰å°ºå¯¸å¤§å°
+// ¶¨Òå³ß´ç´óĞ¡
 struct Size {
     int width, height;
 };
-// å®šä¹‰æŒ‰é’®
+
+// ¶¨Òå°´Å¥
 struct Button {
     int id;
     char title[64];
 };
-// å®šä¹‰æŒ‰é’®ç»„
+
+// ¶¨Òå°´Å¥×é
 struct ButtonGroup {
     int gid;
     struct Button *groups;
     int count;
 };
+
+// ¶¨Òå¶Ô»°¿òÀàĞÍ
+enum dia_type {INFO, YES_NO, YES_NO_CANCEL};
 
 /* SCREEN */
 void clear_scr();

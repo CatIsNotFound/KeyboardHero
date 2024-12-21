@@ -1,15 +1,16 @@
 #include "Graphic.h"
 
-// æ¸…å±
+// ÇåÆÁ
 void clear_scr() {
     system("cls");
 }
 
-// ç§»åŠ¨å…‰æ ‡
+// ÒÆ¶¯¹â±ê
 void move_cursor(const int LINE, const int COL) {
+    if (COL > 120) return;
     char command[16] = {'\0'};
     strcat(command, "\033[");
-    char t[4] = {'\0'};
+    char t[9] = {'\0'};
     itoa(LINE, t, 10);
     strcat(command, t);
     strcat(command, ";");
@@ -19,7 +20,7 @@ void move_cursor(const int LINE, const int COL) {
     printf("%s", command);
 }
 
-// å‘æŸä¸ªæ–¹å‘ç§»åŠ¨ P ä¸ªå…‰æ ‡
+// ÏòÄ³¸ö·½ÏòÒÆ¶¯ P ¸ö¹â±ê
 void move_cur(const enum Direction direction, const int P) {
     char command[16] = {'\0'};
     strcat(command, "\033[");
@@ -31,17 +32,17 @@ void move_cur(const enum Direction direction, const int P) {
     printf("%s", command);
 }
 
-// æ˜¾ç¤ºå…‰æ ‡
+// ÏÔÊ¾¹â±ê
 void show_cursor() {
     printf("%s", "\033[?25h");
 }
 
-// éšè—å…‰æ ‡
+// Òş²Ø¹â±ê
 void hide_cursor() {
     printf("%s", "\033[?25l");
 }
 
-// ç»˜åˆ¶æ¡†æ¶
+// »æÖÆ¿ò¼Ü
 void draw_frame(const struct Position start_pos, const struct Size frame_size, const char* TITLE, const char* TEXT) {
     if (frame_size.width < 8 && frame_size.height < 4) return;
     move_cursor(start_pos.line, start_pos.col);
@@ -55,7 +56,10 @@ void draw_frame(const struct Position start_pos, const struct Size frame_size, c
             printf("+");
         } else {
             printf("|");
-            move_cur(Right, frame_size.width - 2);
+            // move_cur(Right, frame_size.width - 2);
+            for (int i = 0; i < frame_size.width - 2; ++i) {
+                printf(" ");
+            }
             printf("|");
         }
         k += 1;
@@ -63,36 +67,44 @@ void draw_frame(const struct Position start_pos, const struct Size frame_size, c
     }
     int len = (int)strlen(TITLE);
     if (len) {
-        int st = frame_size.width / 2 - len / 2 - 2;
+        int st = frame_size.width / 2 - len / 2 - 2 + !(frame_size.width % 2);
         move_cursor(start_pos.line, start_pos.col + st);
         printf(" %s ", TITLE);
     }
     len = (int)strlen(TEXT);
-    if (!len) return;
-    k = 0; int p = 1;
-    move_cursor(start_pos.line + (p++), start_pos.col + 1);
-    while (k < len) {
-        char code[256] = {'\0'};
-        for (int i = 0; i < frame_size.width - 2; ++i) {
-            if (TEXT[k] == '\n') {
-                k += 1;
-                break;
-            }
-            code[i] = TEXT[k];
-            k++;
-        }
-        printf("%s", code);
+    if (len) {
+        k = 0;
+        int p = 1;
         move_cursor(start_pos.line + (p++), start_pos.col + 1);
+        while (k < len) {
+            char code[256] = {'\0'};
+            for (int i = 0; i < frame_size.width - 2; ++i) {
+                if (TEXT[k] == '\n') {
+                    k += 1;
+                    break;
+                }
+                code[i] = TEXT[k];
+                k++;
+            }
+            printf("%s", code);
+            move_cursor(start_pos.line + (p++), start_pos.col + 1);
+        }
     }
-
     move_cursor(start_pos.line + frame_size.height, start_pos.col );
 }
 
-// ç»˜åˆ¶æŒ‰é’®ç»„
+// »æÖÆµ¥¸ö°´Å¥
+void draw_button(const struct Position position, const struct Button button, const struct Size btn_size) {
+    if (btn_size.width < 6 || btn_size.height < 3) return;
+    move_cursor(position.line, position.col);
+    draw_frame(position, btn_size, "", button.title);
+}
+
+// »æÖÆ°´Å¥×é
 void draw_buttonGroup(const struct Position start_pos, const struct Button groups[16], const int btn_count) {
     if (btn_count > 16) return;
     move_cursor(start_pos.line, start_pos.col);
-    int lens[16] = {0}, max = -1;
+    int lens[16] = {0}, max = 0;
     for (int i = 0; i < btn_count; ++i) {
         lens[i] = (int)strlen(groups[i].title);
         if (lens[i] > max) max = lens[i];
@@ -118,7 +130,7 @@ void draw_buttonGroup(const struct Position start_pos, const struct Button group
     }
 }
 
-// è®¾ç½®æˆ–å–æ¶ˆè®¾ç½®æŒ‰é’®ç»„ä¸­çš„ç„¦ç‚¹
+// ÉèÖÃ»òÈ¡ÏûÉèÖÃ°´Å¥×éÖĞµÄ½¹µã
 void set_focus(const struct Position pos, const struct ButtonGroup group, const int INDEX, const int is_focused) {
     move_cursor(pos.line, pos.col);
     int group_count = group.count;
@@ -132,7 +144,7 @@ void set_focus(const struct Position pos, const struct ButtonGroup group, const 
             else
                 printf(" ");
         }
-        int len = strlen(group.groups[i].title);
+        int len = (int)strlen(group.groups[i].title);
         if (len > max) max = len;
     }
     move_cur(Right, max + 2);
@@ -141,4 +153,6 @@ void set_focus(const struct Position pos, const struct ButtonGroup group, const 
     else
         printf(" ");
 }
+
+
 

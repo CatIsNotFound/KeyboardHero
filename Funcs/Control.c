@@ -1,22 +1,28 @@
 
 #include "Control.h"
 
-// ç­‰å¾…è¾“å…¥
+// µÈ´ıÊäÈë
 void wait() {
     getch();
 }
 
-// è¾“å‡ºè¾“å…¥çš„å­—ç¬¦ Ascii ç 
+// ·µ»ØÊäÈëµÄ×Ö·û
 char get_key() {
-    return getch();
+    return (char)getch();
 }
 
-// æµ‹è¯•é”®ç›˜è¾“å…¥
-void test_key(int keyCode) {
+// ¼üÅÌÊäÈë
+void input_key(int keyCode) {
     char ch = '\0';
     while (ch != keyCode) {
-        ch = get_key();
-        printf("%d ", ch);
+        if (kbhit()) {
+            ch = get_key();
+        }
     }
+}
+
+// ÇÃ»÷¼üÎ»
+char hit_key() {
+    return (kbhit()) ? get_key() : '\0';
 }
 

@@ -1,14 +1,16 @@
 #include <conio.h>
 #include <stdio.h>
 
-// å®šä¹‰ç‰¹æ®Šçš„é”®ï¼Œå¦‚å›è½¦é”®ã€é€€å‡ºé”®ã€å¼ºåˆ¶é€€å‡ºé”®ç­‰
+// ¶¨ÒåÌØÊâµÄ¼ü£¬Èç»Ø³µ¼ü¡¢ÍË³ö¼ü¡¢Ç¿ÖÆÍË³ö¼üµÈ
 enum KEYS {
     K_Ctrl_C = 3,
     K_BackSpace = 8,
     K_Enter = 13,
-    K_Esc = 27
+    K_Esc = 27,
+    K_Space = 32
 };
 
 void wait();
 char get_key();
-void test_key();
+void input_key(int keyCode);
+char hit_key();
