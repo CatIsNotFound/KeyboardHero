@@ -2,6 +2,7 @@
 #include "UI.h"
 
 struct Area area_game, area_pLive, area_pScore, area_pGoal, area_level, area_blocks;
+struct Files game_files;
 
 // 选择菜单项目
 int select_item(const struct Position position, const struct ButtonGroup group) {
@@ -52,7 +53,7 @@ void main_menu() {
     struct Button btns[3] = {
             {11, "新游戏"},
             {12, "继续游戏"},
-            {0, "退出游戏"}
+            {-1, "退出游戏"}
     };
     struct ButtonGroup btg = {1, btns, 3};
     position.line = 12; position.col = 33;
@@ -62,23 +63,114 @@ void main_menu() {
 }
 
 // TODO: 选择存档
-void select_datas(const enum Mode mode) {
+void select_datas(const enum Mode mode, struct GameDatas *gameDatas) {
     clear_scr();
     struct Position position = {2, 3};
-    struct Size size = {79, 20};
-    if (mode)
-        draw_frame(position, size, "保存游戏", " 选择任一存档以保存游戏：");
-    else
-        draw_frame(position, size, "载入游戏", " 选择任一存档以继续游戏：");
-    for (int i = 0; i < 3; ++i) {
-        struct Position dt_pos = {5, 5};
-        struct Size dt_size = {25, 9};
-        draw_frame(dt_pos, dt_size, "DATA01",
-                   "游玩时长：0 小时\n"
-                   "游玩总分：0 分\n"
-                   "难度等级：LV0\n"
-                   "当前等级：LV0\n");
+    struct Size size = {81, 27};
+    if (mode) {
+        draw_frame(position, size, "存档", " 选择任一数据并按下 Enter 键存档：");
+    } else {
+        draw_frame(position, size, "继续", " 选择任一数据并按下 Enter 键继续：");
     }
+    struct Position dt_pos = {7, 5};
+    struct Size dt_size = {25, 7};
+    char dir_name[6] = {'s', 'a', 'v', 'e', 'd', '/'};
+    struct Position t_pos = {9, 24};
+    struct Size t_size = {32, 10};
+    int err = get_list(dir_name, &game_files);
+    if (err == 0 && mode == Load) {
+        dialogbox(t_pos, t_size, "找不到存档", "\n  当前没有任何存档！\n  请先游玩游戏并存档！", INFO);
+        main_menu();
+        return;
+    } else {
+        for (int i = 0; i < game_files.count; i++) {
+            char file_name[32];
+            strcpy(file_name, dir_name);
+            strcat(file_name, game_files.name[i]);
+            if (load_data(file_name, gameDatas) == 2) {
+                dialogbox(t_pos, t_size, "存档读取出现问题", "\n  某个存档文件可能存在篡改！无法直接读取文件！",
+                          INFO);
+                return;
+            }
+        }
+    }
+    struct Area data_area[9];
+    char title[7] = {'\0'};
+    for (int i = 0; i < 9; ++i) {
+        data_area[i].a_pos.col = (i % 3) * 26 + 5;
+        data_area[i].a_pos.line = (i / 3) * 8 + 5;
+        char id[3] = {'\0', '\0', '\0'};
+        strcpy(title, "Data");
+        itoa(i + 1, id, 10);
+        strncat(title, id, 2);
+        draw_frame(data_area[i].a_pos, dt_size, title, "");
+    }
+    if (mode == Save) {
+        int num = select_one_data(data_area, 10);
+        if (num + 1) {
+            char file_name[32] = {'\0'};
+            strcpy(file_name, "saved/");
+            char id[3] = {'\0', '\0', '\0'};
+            strcpy(title, "Data");
+            itoa(num + 1, id, 10);
+            strncat(title, id, 2);
+            strcat(file_name, title);
+            save_data(file_name, gameDatas);
+        }
+    }
+}
+
+// 选择一个存档
+int select_one_data(struct Area select_area[], const int select_count) {
+    int option = 0;
+    selected_one_data(true, select_area[option].a_pos);
+    char ch = '\0';
+    while (ch != K_Enter && ch != K_Esc && ch != K_BackSpace) {
+        ch = get_key();
+        selected_one_data(false, select_area[option].a_pos);
+        switch (ch) {
+            case 'W':
+            case 'w':
+            case 'I':
+            case 'i':
+                if (option > 2) option -= 3;
+                break;
+            case 'S':
+            case 's':
+            case 'K':
+            case 'k':
+                if (option < 6) option += 3;
+                break;
+            case 'A':
+            case 'a':
+            case 'J':
+            case 'j':
+                if (option % 3 > 0) option--;
+                break;
+            case 'D':
+            case 'd':
+            case 'L':
+            case 'l':
+                if (option % 3 < 2) option++;
+                break;
+            default:
+                break;
+        }
+        selected_one_data(true, select_area[option].a_pos);
+    }
+    if (ch == K_Esc || ch == K_BackSpace) return -1;
+    return option;
+}
+
+// 显示选中的存档
+void selected_one_data(bool is_selected, struct Position pos) {
+    move_cursor(pos.line, pos.col);
+    char ch = ' ';
+    if (is_selected) ch = '*';
+    move_cur(Right, 8);
+    printf("%c", ch);
+    move_cur(Right, 5);
+    printf("%c", ch);
 }
 
 // 游戏画面
@@ -123,7 +215,7 @@ void update_info(int id, const struct GameDatas *DATAS) {
             break;
         case 5:
             move_cursor(area_blocks.a_pos.line, area_blocks.a_pos.col);
-            printf("%3d", DATAS->blocks);
+            printf("%3d", DATAS->block_count);
             break;
         default:
             break;

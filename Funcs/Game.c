@@ -42,7 +42,7 @@ void init_game() {
     is_running = true;
     init_blocks();
     init_charset();
-    game_datas.blocks = falling_count;
+    game_datas.block_count = falling_count;
     run_thread();
 }
 
@@ -53,7 +53,7 @@ void new_game() {
     game_datas.player_lives = 3;
     game_datas.player_score = 0;
     game_datas.played_time = 0;
-    game_datas.blocks = 0;
+    game_datas.block_count = 0;
     // 初始化游戏
     init_game();
 }
@@ -73,6 +73,13 @@ void * keep(void *pVoid) {
                 continue;
             }
             who_is_falling();
+            if (game_datas.player_lives < 1) {
+                break;
+            }
+        }
+        if (game_datas.player_lives < 1) {
+            is_gaming = false; is_running = false;
+            hero_dead();
         }
         game_datas.played_time += stop_count(&game_time);
     }
@@ -85,10 +92,14 @@ void * await(void *pVoid) {
     while (is_gaming) {
         char key; bool flag = true;
         while (flag) {
+            if (is_gaming) flag = false;
             key = hit_key();
             switch (key) {
                 case K_Space:
+                    is_running = false;
                     flag = false;
+                    sleep(100);
+                    pause_menu();
                     break;
                 case K_Esc:
                     is_running = false;
@@ -107,9 +118,6 @@ void * await(void *pVoid) {
                     break;
             }
         }
-        is_running = false;
-        sleep(100);
-        pause_menu();
     }
     pthread_exit(NULL);
 }
@@ -221,8 +229,8 @@ int update_pos(int i) {
         printf(" ");
         blocks[i].pos.line++;
         if (blocks[i].pos.line >= 29) {
-            kill_live();
             destroy_block(i);
+            if (!kill_live()) return -1;
         } else {
             move_cur(Down, 1);
             move_cur(Left, 1);
@@ -259,13 +267,13 @@ void stop_falling(int id) {
 
 // 谁在下落
 void who_is_falling() {
-    game_datas.blocks = falling_count;
+    game_datas.block_count = falling_count;
     update_info(5, &game_datas);
     int left = 0, right = falling_count;
     int mid = falling_count / 2 + (falling_count % 2);
     for (int i = 0; i < mid; ++i) {
-        update_pos(is_falling[left + i]);
-        update_pos(is_falling[right - i - 1]);
+        if (update_pos(is_falling[left + i]) == -1) break;
+        if (update_pos(is_falling[right - i - 1]) == -1) break;
     }
 }
 
@@ -309,20 +317,26 @@ int random_char(int level) {
 // 选择菜单项目事件
 void selected_event(int selected_id) {
     switch (selected_id) {
-        case 0:
+        case -1:
             destroy();
+            break;
+        case 0:
+            main_menu();
+            break;
+        case 1:
+            new_game();
             break;
         case 11:
             new_game();
             break;
         case 12:
-            select_datas(Load);
+            select_datas(Load, &game_datas);
             break;
         case 21:
             resume();
             break;
         case 22:
-            select_datas(Save);
+            select_datas(Save, &game_datas);
             clear_scr();
             pause_menu();
             break;
@@ -388,28 +402,21 @@ void find_key(char key) {
 }
 
 // 扣除生命直至死亡
-void kill_live() {
+bool kill_live() {
     game_datas.player_lives -= 1;
     update_info(1, &game_datas);
     if (game_datas.player_lives < 1) {
-        is_running = false;
-        is_gaming = false;
-        hero_dead();
+        return 0;
     }
+    return 1;
 }
 
 // 死亡
 void hero_dead() {
-    sleep(1000);
-    is_running = false;
-    is_gaming = false;
+    sleep(2000);
     struct Position pos = {9, 23};
     struct Size size = {32, 11};
 
     int n = dialogbox(pos, size, "你死了", "\n  生命已至，是否再续？\n\n  若继续，则重新开始游戏；\n  若拒绝，将返回主菜单", YES_NO);
-    if (n) {
-        new_game();
-    } else {
-        main_menu();
-    }
+    selected_event(n);
 }

@@ -10,10 +10,10 @@ struct Files {
 
 struct GameDatas {
     long long played_time;
-    long long player_lives;
+    int player_lives;
     long long player_score;
-    long long game_level;
-    int blocks;
+    int game_level;
+    int block_count;
 };
 
 int get_list(char dir_name[], struct Files *dest);
