@@ -23,6 +23,6 @@ void input_key(int keyCode) {
 
 // ÇÃ»÷¼üÎ»
 char hit_key() {
-    return (kbhit()) ? get_key() : '\0';
+    return get_key();
 }
 

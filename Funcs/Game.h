@@ -34,7 +34,6 @@ void who_is_falling();
 int random_char(int level);
 int back_to_main_menu();
 int is_quit_game();
-void show_game_time(struct Position pos);
 void find_key(char key);
 bool kill_live();
 void hero_dead();
