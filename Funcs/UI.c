@@ -53,7 +53,7 @@ void main_menu() {
                " K  K  E       Y   B   B O   O A   A R  R  D   D       H   H E     R  R  O   O\n"
                " K   K EEEEE   Y   BBBB   OOO  A   A R   R DDDD        H   H EEEEE R   R  OOO \n");
     move_cur(Right, 28);
-    printf("Made by XinKai Liao.\n");
+    printf("Made by CatIsNotFound.\n");
     move_cur(Right, 34);
     printf("Version 0.11\n");
     struct Button btns[3] = {
